@@ -1,0 +1,5 @@
+{
+  "api_key": "在这里填百度开放平台的 API Key",
+  "secret_key": "在这里填百度开放平台的 Secret Key",
+  "note": "百度 AI 开放平台 → 文字识别 → 手写文字识别 / 通用文字识别。个人实名有免费额度。也可以改用环境变量 BAIDU_OCR_AK / BAIDU_OCR_SK。"
+}

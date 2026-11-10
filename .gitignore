@@ -1,0 +1,38 @@
+# 数据与缓存：都不进仓库
+data/*
+!data/README.md
+!data/baidu.json.example
+!data/secrets.env.example
+cache/
+# 用户音色录音：只留说明文件，录音一律不进仓库（wav/mp3/m4a/aiff）
+voices/*
+!voices/README.md
+
+# 运行产物
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.log
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 개인 학습 자료와 개발 도구 산출물
+.venv/
+node_modules/
+test-results/
+playwright-report/
+.env
+*.sqlite3
+*.sqlite3-*
+*.db
+
+# GitHub 배포 소스: 개발 중 생성한 개인 자료 제외
+*.zip
+*.tar.gz
+*백업*.json
+*backup*.json

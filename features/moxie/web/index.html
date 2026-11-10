@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F3F7FF">
+<title>📖 小学生默写助手</title>
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23FF8A3D'/><path d='M18 42h28M22 26h20M26 18h12' stroke='%23fff' stroke-width='6' stroke-linecap='round'/></svg>">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- 首页 -->
+  <section class="screen is-active" id="screen-home">
+    <header class="hero">
+      <p class="hero-kicker">小学生默写助手</p>
+      <h1 class="hero-title">今天写什么？</h1>
+      <p class="hero-sub" id="home-sub">拍下作业本，一条一条念给你听。</p>
+    </header>
+
+    <div class="subject">
+      <span class="subject-label">这次默写</span>
+      <div class="seg" id="seg-subject">
+        <button data-val="zh">中文默写</button>
+        <button data-val="en">英文默写</button>
+      </div>
+    </div>
+
+    <div class="stack">
+      <button class="card card-primary" id="btn-photo">
+        <span class="card-emoji">📷</span>
+        <span class="card-body">
+          <span class="card-title">拍下默写内容</span>
+          <span class="card-note">对着作业本拍一张，自动识别手写内容</span>
+        </span>
+        <span class="card-arrow">›</span>
+      </button>
+
+      <div class="row">
+        <button class="card card-mini" id="btn-upload">
+          <span class="card-emoji">🖼️</span>
+          <span class="card-title">传图片</span>
+          <span class="card-note">相册里选一张</span>
+        </button>
+        <button class="card card-mini" id="btn-manual">
+          <span class="card-emoji">✍️</span>
+          <span class="card-title">手动输入</span>
+          <span class="card-note">一行一条打进去</span>
+        </button>
+      </div>
+
+      <button class="card card-ghost" id="btn-last" hidden>
+        <span class="card-emoji">🕘</span>
+        <span class="card-body">
+          <span class="card-title">继续上次的清单</span>
+          <span class="card-note" id="last-note"></span>
+        </span>
+        <span class="card-arrow">›</span>
+      </button>
+
+      <div class="row row-3">
+        <button class="card card-mini card-quiet" id="btn-records">
+          <span class="card-emoji">📚</span>
+          <span class="card-title">记录</span>
+          <span class="card-note" id="records-note">每轮都在这里</span>
+        </button>
+        <button class="card card-mini card-quiet" id="btn-wrongbook">
+          <span class="card-emoji">🔁</span>
+          <span class="card-title">错题本</span>
+          <span class="card-note" id="wrong-note">错过的字词</span>
+        </button>
+        <button class="card card-mini card-quiet" id="btn-stats">
+          <span class="card-emoji">📈</span>
+          <span class="card-title">能力评估</span>
+          <span class="card-note">正确率与趋势</span>
+        </button>
+      </div>
+    </div>
+
+    <footer class="foot">
+      <button class="link" id="btn-settings">设置</button>
+      <span class="dot-sep">·</span>
+      <button class="link" id="btn-features">功能</button>
+      <span class="voice-tag" id="voice-tag"></span>
+    </footer>
+  </section>
+
+  <!-- 清单 -->
+  <section class="screen" id="screen-list">
+    <header class="bar">
+      <button class="icon-btn" data-go="home" aria-label="返回">‹</button>
+      <div class="bar-title">清单<span id="list-count"></span></div>
+      <button class="icon-btn" id="btn-add" aria-label="加一条">＋</button>
+    </header>
+
+    <div class="list-wrap">
+      <ul class="items" id="items"></ul>
+      <div class="empty" id="list-empty" hidden>
+        <p>还没有内容，点右上角 ＋ 加一条。</p>
+      </div>
+
+      <div class="settings">
+        <div class="seg-block">
+          <div class="seg-label">节奏</div>
+          <div class="seg" id="seg-mode">
+            <button data-val="manual">👆 手动点</button>
+            <button data-val="autoFast">⏩ 自动快</button>
+            <button data-val="autoSlow">🐢 自动慢</button>
+          </div>
+          <p class="seg-note" id="mode-note"></p>
+        </div>
+        <div class="seg-block">
+          <div class="seg-label">语速</div>
+          <div class="seg" id="seg-speed">
+            <button data-val="fast">快</button>
+            <button data-val="normal">正常</button>
+            <button data-val="slow">慢</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actionbar">
+      <button class="big-btn big-btn-ghost" id="btn-reocr">重新识别</button>
+      <button class="big-btn big-btn-main" id="btn-start">开始默写</button>
+    </div>
+  </section>
+
+  <!-- 播放 -->
+  <section class="screen screen-play" id="screen-play">
+    <div class="play-top">
+      <div class="progress-text" id="play-progress"></div>
+      <button class="icon-btn" id="btn-quit" aria-label="结束">✕</button>
+    </div>
+
+    <div class="dots" id="play-dots"></div>
+
+    <div class="stage">
+      <div class="stage-card" id="stage-card">
+        <div class="stage-state" id="stage-state">准备好了吗</div>
+        <div class="stage-sub" id="stage-sub">点下面的按钮开始</div>
+        <div class="ring" id="ring" hidden>
+          <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"></circle><circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"></circle></svg>
+          <span class="ring-num" id="ring-num"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="play-controls">
+      <button class="ctrl" id="btn-prev"><span>⏮</span>上一个</button>
+      <button class="ctrl ctrl-main" id="btn-repeat"><span>🔁</span>再念一遍</button>
+      <button class="ctrl" id="btn-next"><span>⏭</span>下一个</button>
+    </div>
+    <div class="play-controls play-controls-2">
+      <button class="ctrl ctrl-wide" id="btn-pause"><span>⏸</span>暂停</button>
+    </div>
+  </section>
+
+  <!-- 记录 -->
+  <section class="screen" id="screen-records">
+    <header class="bar">
+      <button class="icon-btn" data-go="home" aria-label="返回">‹</button>
+      <div class="bar-title">默写记录</div>
+      <button class="icon-btn" id="records-filter" aria-label="筛选">全</button>
+    </header>
+    <div class="list-wrap" id="records-list"></div>
+  </section>
+
+  <!-- 记录详情 / 批改 -->
+  <section class="screen" id="screen-record">
+    <header class="bar">
+      <button class="icon-btn" data-go="records" aria-label="返回">‹</button>
+      <div class="bar-title" id="record-title">这一轮</div>
+      <span class="icon-btn" aria-hidden="true"></span>
+    </header>
+    <div class="list-wrap">
+      <div class="panel" id="record-summary"></div>
+      <ul class="items" id="record-items"></ul>
+      <div class="panel panel-note" id="record-tip"></div>
+    </div>
+    <div class="actionbar actionbar-3">
+      <button class="big-btn big-btn-ghost" id="btn-grade-upload">📷 拍照批改</button>
+      <button class="big-btn big-btn-ghost" id="btn-grade-vision" hidden>视觉精批</button>
+      <button class="big-btn big-btn-main" id="btn-grade-save">保存复核</button>
+    </div>
+  </section>
+
+  <!-- 错题本 -->
+  <section class="screen" id="screen-wrongbook">
+    <header class="bar">
+      <button class="icon-btn" data-go="home" aria-label="返回">‹</button>
+      <div class="bar-title">错题本</div>
+      <button class="icon-btn" id="wrong-filter" aria-label="筛选">全</button>
+    </header>
+    <div class="list-wrap" id="wrong-list"></div>
+    <div class="actionbar">
+      <button class="big-btn big-btn-ghost" id="btn-wrong-refresh">刷新</button>
+      <button class="big-btn big-btn-main" id="btn-wrong-retry">用错题再默一次</button>
+    </div>
+  </section>
+
+  <!-- 能力评估 -->
+  <section class="screen" id="screen-stats">
+    <header class="bar">
+      <button class="icon-btn" data-go="home" aria-label="返回">‹</button>
+      <div class="bar-title">能力评估</div>
+      <button class="icon-btn" id="stats-range" aria-label="范围">14天</button>
+    </header>
+    <div class="list-wrap" id="stats-body"></div>
+  </section>
+
+  <!-- 设置 -->
+  <section class="screen" id="screen-settings">
+    <header class="bar">
+      <button class="icon-btn" data-go="home" aria-label="返回">‹</button>
+      <div class="bar-title">设置</div>
+      <span class="icon-btn" aria-hidden="true"></span>
+    </header>
+    <div class="list-wrap">
+      <div class="panel">
+        <div class="panel-title">朗读音色</div>
+        <p class="panel-line" id="set-voice"></p>
+        <p class="panel-note">每条读两遍：词语「请默写：X」「X」；句子「请默写：X」「请再听一遍：X」。</p>
+      </div>
+      <div class="panel">
+        <div class="panel-title">识别</div>
+        <p class="panel-line" id="set-recognize"></p>
+        <p class="panel-note">默认先用手写识别（快），认得太少时自动再用视觉模型看一遍（慢些、更准）。</p>
+      </div>
+      <div class="panel">
+        <div class="panel-title">这台设备</div>
+        <p class="panel-line" id="set-device"></p>
+        <p class="panel-note">语音都在这台电脑上合成后缓存，同一个词只会合成一次。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 功能 -->
+  <section class="screen" id="screen-features">
+    <header class="bar">
+      <button class="icon-btn" data-go="home" aria-label="返回">‹</button>
+      <div class="bar-title">学习功能</div>
+      <span class="icon-btn" aria-hidden="true"></span>
+    </header>
+    <div class="list-wrap" id="feature-list"></div>
+  </section>
+
+</div>
+
+<!-- 识别中的浮层 -->
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay-card">
+    <div class="spinner"></div>
+    <div class="overlay-title" id="overlay-title">正在认字…</div>
+    <div class="overlay-note" id="overlay-note">手写识别大概 2 秒，照片复杂时会久一点</div>
+  </div>
+</div>
+
+<!-- 手动输入 -->
+<div class="sheet" id="sheet-manual" hidden>
+  <div class="sheet-card">
+    <div class="sheet-title">手动输入</div>
+    <textarea id="manual-text" rows="8" placeholder="一行一条，例如：&#10;春天&#10;花朵&#10;小鸟在树上唱歌。"></textarea>
+    <div class="sheet-tools" id="manual-tools" hidden>
+      <button class="big-btn big-btn-ghost" id="edit-up">↑ 上移</button>
+      <button class="big-btn big-btn-ghost" id="edit-down">↓ 下移</button>
+      <button class="big-btn big-btn-ghost" id="edit-del">删除这条</button>
+    </div>
+    <div class="sheet-actions">
+      <button class="big-btn big-btn-ghost" id="manual-cancel">取消</button>
+      <button class="big-btn big-btn-main" id="manual-ok">整理成清单</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-camera" accept="image/*" capture="environment" hidden>
+<input type="file" id="file-upload" accept="image/*" hidden>
+<input type="file" id="file-answer" accept="image/*" capture="environment" hidden>
+<audio id="player" preload="auto"></audio>
+
+<script src="app.js"></script>
+<script src="records.js"></script>
+</body>
+</html>

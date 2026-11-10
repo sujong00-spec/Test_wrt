@@ -1,0 +1,108 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8770,
+    "name": "한글 받아쓰기",
+    "default_feature": "dictation"
+  },
+  "access": {
+    "enabled": false,
+    "note": "访问口令（默认关闭）。只在没有私有网络、又必须开公网隧道时才打开：装上 Tailscale 这类私有组网后应保持关闭。"
+  },
+  "voice": {
+    "name": "系统默认音色",
+    "engine": "system",
+    "engine_note": "system=系统自带语音（默认：零配置、不联网、不需要参考录音）；gradio=音色克隆服务（云上创空间或本机 CosyVoice2）；openai=任意 OpenAI 兼容语音接口（本机 Kokoro-FastAPI 等）；command=本机命令行 TTS（piper / edge-tts / say）。",
+    "system": {
+      "voice": "",
+      "rate": 0,
+      "note": "留空自动挑中文音色（Windows 常见 Microsoft Huihui，macOS 常见 Tingting，Linux 用 espeak-ng 的 cmn）；要指定就填系统里的音色名。rate 取 -10~10，0 为正常语速。"
+    },
+    "voices_dir": "voices",
+    "voices_note": "用户自己的音色录音都放这个目录：换音色 = 丢一个 wav 进去 + 改 ref_wav，代码不用动。目录只在本机，*.wav 不进仓库。",
+    "ref_wav": "voices/my-voice.wav",
+    "ref_note": "只有用 gradio / 音色克隆时才需要：3~8 秒、单声道、纯中文的自录参考段",
+    "prompt_text": "",
+    "prompt_note": "用 gradio 引擎时必填：上面那段参考录音念的原文，逐字一致，否则音色会跑偏",
+    "studio": "https://studio-iic-cosyvoice2-0-5b.api-inference.modelscope.net",
+    "studio_note": "本机跑 CosyVoice2 时改成 http://127.0.0.1:<端口>，fn_index 按本机 webui 的函数序号调（官方 webui 默认 1）",
+    "fn_index": 1,
+    "mode": "3s极速复刻",
+    "token_env": "MODELSCOPE_API_KEY",
+    "openai": {
+      "base_url": "http://127.0.0.1:8880/v1",
+      "model": "kokoro",
+      "voice": "zf_xiaobei",
+      "format": "mp3",
+      "token_env": "",
+      "timeout": 600
+    },
+    "command": {
+      "argv": [
+        "edge-tts",
+        "--voice",
+        "zh-CN-YunxiNeural",
+        "--text",
+        "{text}",
+        "--write-media",
+        "{out}"
+      ],
+      "ext": ".mp3",
+      "timeout": 300,
+      "note": "纯离线方案：pip install piper-tts 后 argv 填 piper --model <中文模型路径> --output_file {out}，并加 \"stdin\": true"
+    },
+    "workers": 3,
+    "speeds": {
+      "fast": 1.15,
+      "normal": 1.0,
+      "slow": 0.82
+    },
+    "max_chars_per_clip": 60,
+    "phrase": {
+      "lead": "请默写：",
+      "again": "请再听一遍：",
+      "word_end": "",
+      "end": "默写结束，你真棒！",
+      "first": "已经是第一个了",
+      "last": "已经是最后一个了",
+      "start": "准备好了吗？我们开始默写。"
+    }
+  },
+  "recognize": {
+    "provider": "auto",
+    "chain": [
+      "local",
+      "baidu",
+      "vision"
+    ],
+    "chain_note": "识别顺序：没配的通道自动跳过。local 走本机 OCR 服务（完全离线），baidu 走百度手写识别（需联网+密钥），vision 走任意 OpenAI 兼容视觉模型（可指向本机 Ollama）。",
+    "local": {
+      "url": "",
+      "url_note": "起本机 OCR：python3 tools/ocr_server.py --port 8788，然后这里填 http://127.0.0.1:8788/ocr",
+      "timeout": 60
+    },
+    "baidu": {
+      "endpoint": "handwriting",
+      "key_file": "data/baidu.json"
+    },
+    "vision": {
+      "base_url": "https://discovery-api.intern-ai.org.cn/v1",
+      "model": "deepseek-v4-flash-vision",
+      "token_env": "INTERN_DISCOVERY_API_KEY",
+      "max_tokens": 1200,
+      "local_note": "指向本机视觉模型时：base_url 填 http://127.0.0.1:11434/v1（Ollama），model 填 qwen2.5-vl:7b 之类；本机地址不需要令牌。",
+      "compact": false,
+      "compact_note": "true 时批改走两步（先判定码、再取错项原文）：输出 tokens 更省，但多一次往返、判定略退步，默认 false"
+    },
+    "max_upload_mb": 12
+  },
+  "play": {
+    "defaultMode": "manual",
+    "paceFast": 10,
+    "paceSlow": 20,
+    "gapMs": 700,
+    "leadGapMs": 400,
+    "repeat": 2,
+    "defaultSpeed": "normal"
+  }
+}

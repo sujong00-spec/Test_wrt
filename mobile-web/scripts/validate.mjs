@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import worker from '../dist/server/index.js';
+const html=await readFile(new URL('../web/index.html',import.meta.url),'utf8');
+const app=await readFile(new URL('../web/app.js',import.meta.url),'utf8');
+const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
+for(const match of app.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.has(match[1]),`missing HTML id: ${match[1]}`);
+for(const path of ['/','/app.js','/app.css','/data.js','/client.js','/player.js','/manifest.webmanifest','/icon.svg','/LICENSE'])assert.equal((await worker.fetch(new Request('https://test.example'+path),{})).status,200,path);
+assert.equal((await worker.fetch(new Request('https://test.example/.openai/hosting.json'),{})).status,404);
+assert.match(html,/사진.*자동 채점/);
+assert.match(html,/<details id="prompt-editor" open>/);
+for(const id of ['student','nickname','student-form','rename','delete-student'])assert.ok(!ids.has(id),'가족용 화면에서 학생 관리 제거: '+id);
+assert.match(html,/<title>기량이의 받아쓰기 공부<\/title>/);
+assert.match(html,/<option value="manual" selected>/);
+for(const id of ['next-sentence','pack-select','pack-save','pack-load','start-warmup','completion','sticker-days'])assert.ok(ids.has(id));
+assert.ok(ids.has('current-sentence'));assert.ok(ids.has('hide-sentence'));
+assert.ok(html.indexOf('id="signin"')>html.indexOf('id="settings"'));
+console.log('화면 요소·정적 경로·Worker 배포 형식 검증 통과');
