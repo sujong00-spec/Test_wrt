@@ -1,0 +1,25 @@
+// Run: node english-vocab-notebook/tests/notebook.test.cjs
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const app={innerHTML:''};const store={};
+const document={getElementById:id=>id==='app'?app:null,querySelectorAll:()=>[],querySelector:()=>null,addEventListener:()=>{},body:{appendChild(){}}};
+const ctx=vm.createContext({document,localStorage:{getItem:k=>store[k]??null,setItem:(k,v)=>store[k]=v},window:{scrollTo(){}},crypto:{randomUUID:()=>Math.random().toString(36).slice(2)},setTimeout:()=>{},console});
+ctx.globalThis=ctx;vm.runInContext(script,ctx);
+const evalCode=s=>vm.runInContext(s,ctx);
+assert.match(app.innerHTML,/학원 단어장/);
+evalCode('num="10";start(false)');
+assert.match(app.innerHTML,/공책에 <strong>1번<\/strong>/);
+assert.doesNotMatch(app.innerHTML,/id="answer"|정답 확인/);
+for(let i=0;i<10;i++)evalCode('exam.i+1===exam.words.length?setPage("mark"):(exam.i++,render())');
+assert.match(app.innerHTML,/공책 답안 채점하기/);
+assert.match(app.innerHTML,/data-act="finishmark" disabled/);
+evalCode('for(let i=0;i<10;i++)exam.marks[i]=i<7;finish()');
+assert.equal(evalCode('wrong().length'),3);
+assert.match(app.innerHTML,/70/);
+evalCode('start(true)');
+assert.equal(evalCode('exam.words.length'),3);
+evalCode('exam.marks.fill(true);finish()');
+assert.equal(evalCode('wrong().length'),0);
+assert.equal(evalCode('db.history.length'),2);
+console.log('PASS: notebook questions, answer secrecy, manual marking, wrong-only retest, score history');
